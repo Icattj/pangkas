@@ -712,7 +712,15 @@ function renderKasir(el){
       </select>
     </div>
     <div id="cartList"></div>
+    <div id="discountArea" style="display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.5rem">
+      <div class="disc-chip on" onclick="setDiscount(0,'none')">Tanpa Diskon</div>
+      <div class="disc-chip" onclick="setDiscount(10,'pct')">10%</div>
+      <div class="disc-chip" onclick="setDiscount(20,'pct')">20%</div>
+      <div class="disc-chip" onclick="setDiscount(50,'pct')">50%</div>
+      <div class="disc-chip" onclick="promptCustomDiscount()">Custom</div>
+    </div>
     <div class="cart-total" id="cartTotal">Total: Rp 0</div>
+    <div id="sepertibiasa" style="display:none;margin-bottom:.3rem"><button class="btn btn-outline btn-full" onclick="loadLastOrder()" style="border-color:rgba(10,191,188,.3)">🔄 Seperti Biasa</button></div>
     <button class="btn btn-teal btn-full" onclick="checkout()" style="margin-top:.3rem">💳 Bayar & Cetak Struk</button>
   </div>`;
   cart=[];
@@ -821,7 +829,10 @@ function checkout(){
   if(cart.length===0){ alert('Pilih layanan dulu!'); return; }
   const name=document.getElementById('custName')?.value?.trim()||'Pelanggan';
   const barberId=document.getElementById('barberSel')?.value;
-  const total=cart.reduce((a,c)=>a+c.price,0);
+  const subtotal=cart.reduce((a,c)=>a+c.price,0);
+  const disc=currentDiscount;
+  const discAmount=disc.type==='pct'?Math.round(subtotal*(disc.value/100)):Math.min(disc.value,subtotal);
+  const total=subtotal-discAmount;
   // Show payment method modal using DOM
   const box = document.getElementById('modalBox');
   const methods = [
@@ -836,7 +847,7 @@ function checkout(){
   box.appendChild(h3);
   const sub = document.createElement('div');
   sub.style.cssText = 'font-size:.85rem;color:var(--ash);margin-bottom:1rem';
-  sub.innerHTML = 'Total: <strong style="color:var(--teal);font-size:1.1rem">'+rp(total)+'</strong>';
+  sub.innerHTML = (discAmount>0?'<div style="font-size:.72rem;text-decoration:line-through;color:var(--ash)">'+rp(subtotal)+'</div><div style="font-size:.68rem;color:var(--sage)">Diskon: -'+rp(discAmount)+'</div>':'')+'Total: <strong style="color:var(--teal);font-size:1.1rem">'+rp(total)+'</strong>';
   box.appendChild(sub);
   const grid = document.createElement('div');
   grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1rem';
@@ -2548,6 +2559,88 @@ buildNav=function(){
   var bn=document.getElementById('bottomNav');
   if(bn) bn.style.display='flex';
 };
+// ── Discount System ──
+var currentDiscount={type:'none',value:0};
+function setDiscount(val,type){
+  currentDiscount={type:type,value:val};
+  document.querySelectorAll('.disc-chip').forEach(function(c){c.classList.remove('on')});
+  event.target.classList.add('on');
+  renderCart();
+}
+function promptCustomDiscount(){
+  var val=prompt('Masukkan diskon (angka saja, misal 15 untuk 15%):');
+  if(val&&!isNaN(val)){
+    currentDiscount={type:'pct',value:parseInt(val)};
+    document.querySelectorAll('.disc-chip').forEach(function(c){c.classList.remove('on')});
+    event.target.classList.add('on');
+    event.target.textContent=val+'%';
+    renderCart();
+  }
+}
+
+// ── Seperti Biasa (Quick Reorder) ──
+function checkSepertiBiasa(){
+  var nameEl=document.getElementById('custName');
+  var sbiEl=document.getElementById('sepertibiasa');
+  if(!nameEl||!sbiEl) return;
+  var name=nameEl.value.trim().toLowerCase();
+  if(!name||name==='pelanggan'){sbiEl.style.display='none';return;}
+  var txs=DB.get('transactions')||[];
+  var lastTx=txs.filter(function(t){return t.customer.toLowerCase()===name}).pop();
+  sbiEl.style.display=lastTx?'block':'none';
+}
+
+function loadLastOrder(){
+  var name=(document.getElementById('custName')?.value||'').trim().toLowerCase();
+  var txs=DB.get('transactions')||[];
+  var lastTx=txs.filter(function(t){return t.customer.toLowerCase()===name}).pop();
+  if(!lastTx) return;
+  cart=[];
+  lastTx.items.forEach(function(item){cart.push({id:item.id,name:item.name,price:item.price,isAddon:item.isAddon,addonId:item.addonId})});
+  renderSvcGrid();
+  if(typeof renderAddonGrid==='function') renderAddonGrid();
+  renderCart();
+  showToast('Order terakhir di-load!','success');
+}
+
+// Wire up custName input for seperti biasa detection
+document.addEventListener('input',function(e){
+  if(e.target&&e.target.id==='custName') checkSepertiBiasa();
+});
+
+// ── Bar Chart for Laporan ──
+var _origRenderLaporan=typeof renderLaporanContent==='function'?renderLaporanContent:null;
+if(_origRenderLaporan){
+  var origRL=renderLaporanContent;
+  renderLaporanContent=function(){
+    origRL();
+    // Add bar chart after existing content
+    var el=document.getElementById('laporanContent');
+    if(!el) return;
+    var txs=DB.get('transactions')||[];
+    var days=[];
+    for(var i=6;i>=0;i--){
+      var d=new Date();d.setDate(d.getDate()-i);
+      var ds=d.toDateString();
+      var dayTx=txs.filter(function(t){return new Date(t.date).toDateString()===ds&&!t.isHutang});
+      var total=dayTx.reduce(function(a,t){return a+t.total},0);
+      days.push({label:d.toLocaleDateString('id-ID',{weekday:'short'}),total:total});
+    }
+    var maxVal=Math.max.apply(null,days.map(function(d){return d.total}))||1;
+    var chartHtml='<div class="card" style="margin-top:.75rem"><div class="card-title">📊 Revenue 7 Hari Terakhir</div>';
+    chartHtml+='<div style="display:flex;align-items:flex-end;gap:4px;height:120px;padding-top:8px">';
+    days.forEach(function(d){
+      var pct=Math.round((d.total/maxVal)*100);
+      chartHtml+='<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">';
+      chartHtml+='<div style="font-size:.55rem;color:var(--ash)">'+rp(d.total).replace('Rp ','')+'</div>';
+      chartHtml+='<div style="width:100%;background:rgba(10,191,188,.15);border-radius:4px 4px 0 0;min-height:4px;height:'+pct+'%;transition:height .3s"><div style="width:100%;height:100%;background:var(--teal);border-radius:4px 4px 0 0;opacity:.8"></div></div>';
+      chartHtml+='<div style="font-size:.6rem;color:var(--ash)">'+d.label+'</div>';
+      chartHtml+='</div>';
+    });
+    chartHtml+='</div></div>';
+    el.insertAdjacentHTML('beforeend',chartHtml);
+  };
+}
 </script>
 </body>
 </html>
