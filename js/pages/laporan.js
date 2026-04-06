@@ -87,7 +87,7 @@ function renderLaporan(container) {
         ${totalHutang > 0 ? `
           <div class="card warning-card">
             ⚠️ Ada ${unpaidTx.length} hutang belum lunas: <strong>${rp(totalHutang)}</strong>
-            <button class="btn btn-sm btn-outline" onclick="navigateTo('hutang')">Lihat →</button>
+            <button class="btn btn-sm btn-outline" onclick="PangkasApp.navigate('hutang')">Lihat →</button>
           </div>
         ` : ''}
 

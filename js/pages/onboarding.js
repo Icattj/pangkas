@@ -216,7 +216,7 @@ function renderOnboarding(container) {
     DB.set('currentUser', newBarber);
 
     UI.toast('Toko berhasil diatur! 🎉', 'success');
-    navigateTo('home');
+    PangkasApp.navigate('home');
   }
 
   render();

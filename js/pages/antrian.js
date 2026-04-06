@@ -235,7 +235,7 @@ function renderAntrian(container) {
           barberId: item.barberId,
           serviceId: item.serviceId
         };
-        navigateTo('kasir');
+        PangkasApp.navigate('kasir');
       });
     } else if (action === 'batal') {
       item.status = 'batal';

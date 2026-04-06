@@ -78,13 +78,13 @@ function renderHome(container) {
       ` : ''}
 
       <div class="quick-actions">
-        <button class="btn btn-primary btn-lg" onclick="navigateTo('kasir')">
+        <button class="btn btn-primary btn-lg" onclick="PangkasApp.navigate('kasir')">
           💰 Transaksi Baru
         </button>
-        <button class="btn btn-secondary btn-lg" onclick="navigateTo('antrian')">
+        <button class="btn btn-secondary btn-lg" onclick="PangkasApp.navigate('antrian')">
           📋 Tambah Antrian
         </button>
-        <button class="btn btn-outline btn-lg" onclick="navigateTo('janji')">
+        <button class="btn btn-outline btn-lg" onclick="PangkasApp.navigate('janji')">
           📅 Buat Janji
         </button>
       </div>

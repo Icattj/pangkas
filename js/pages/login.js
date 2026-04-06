@@ -73,16 +73,16 @@ function renderLogin(container) {
       const settings = DB.get('settings');
       const services = DB.get('services') || [];
       if (!settings || !settings.shop || !settings.shop.name || services.length === 0) {
-        navigateTo('onboarding');
+        PangkasApp.navigate('onboarding');
       } else {
-        navigateTo('home');
+        PangkasApp.navigate('home');
       }
     } else {
       // If no barbers exist, check for master PIN "0000"
       if (barbers.length === 0 && pin === '0000') {
         currentUser = { id: 'admin', name: 'Admin', role: 'admin', pin: '0000' };
         DB.set('currentUser', currentUser);
-        navigateTo('onboarding');
+        PangkasApp.navigate('onboarding');
       } else {
         shakeAndClear();
       }
