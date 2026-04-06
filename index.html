@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0ABFBC">
+  <meta name="description" content="Pangkas — Sistem manajemen barbershop modern">
+  <title>Pangkas</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='4' y='26' font-size='28'%3E✂️%3C/text%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/core.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+
+  <!-- ============================================
+       LOGIN SCREEN
+       ============================================ -->
+  <div id="login-screen">
+    <!-- Logo -->
+    <div class="login-logo">✂️</div>
+
+    <!-- Shop Name (filled by JS from settings) -->
+    <div class="login-shop-name" id="login-shop-name">Barbershop</div>
+    <div class="login-subtitle">Masukkan PIN untuk masuk</div>
+
+    <!-- PIN Display (4 dots) -->
+    <div class="pin-display" id="pin-display">
+      <div class="pin-dot" data-index="0"></div>
+      <div class="pin-dot" data-index="1"></div>
+      <div class="pin-dot" data-index="2"></div>
+      <div class="pin-dot" data-index="3"></div>
+    </div>
+
+    <!-- PIN Pad -->
+    <div class="pin-pad" id="pin-pad">
+      <button class="pin-key" data-key="1">1</button>
+      <button class="pin-key" data-key="2">2</button>
+      <button class="pin-key" data-key="3">3</button>
+      <button class="pin-key" data-key="4">4</button>
+      <button class="pin-key" data-key="5">5</button>
+      <button class="pin-key" data-key="6">6</button>
+      <button class="pin-key" data-key="7">7</button>
+      <button class="pin-key" data-key="8">8</button>
+      <button class="pin-key" data-key="9">9</button>
+      <button class="pin-key empty"></button>
+      <button class="pin-key" data-key="0">0</button>
+      <button class="pin-key backspace" data-key="back">⌫</button>
+    </div>
+
+    <!-- Error Message -->
+    <div class="pin-error-msg" id="pin-error"></div>
+
+    <!-- Footer -->
+    <div class="login-footer">
+      Powered by <span>Pangkas</span>
+    </div>
+  </div>
+
+  <!-- ============================================
+       ONBOARDING SCREEN
+       ============================================ -->
+  <div id="onboarding-screen">
+    <!-- Progress Dots -->
+    <div class="onboard-progress" id="onboard-progress">
+      <div class="onboard-dot active" data-step="0"></div>
+      <div class="onboard-dot" data-step="1"></div>
+      <div class="onboard-dot" data-step="2"></div>
+    </div>
+
+    <!-- Step 1: Shop Info -->
+    <div class="onboard-step active" data-step="0">
+      <div class="onboard-icon">🏪</div>
+      <h2 class="onboard-title">Info Barbershop</h2>
+      <p class="onboard-desc">Isi nama dan alamat barbershop kamu untuk memulai.</p>
+      <div class="onboard-form">
+        <div class="input-group">
+          <label for="ob-shop-name">Nama Barbershop</label>
+          <input type="text" class="input" id="ob-shop-name" placeholder="contoh: Jaya Barber">
+        </div>
+        <div class="input-group">
+          <label for="ob-shop-address">Alamat</label>
+          <input type="text" class="input" id="ob-shop-address" placeholder="Jl. Merdeka No. 10">
+        </div>
+        <div class="input-group">
+          <label for="ob-shop-phone">No. Telepon / WhatsApp</label>
+          <input type="tel" class="input" id="ob-shop-phone" placeholder="08123456789">
+        </div>
+      </div>
+      <div class="onboard-actions">
+        <button class="btn btn-primary btn-full" id="ob-next-0">Lanjut →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Services -->
+    <div class="onboard-step" data-step="1">
+      <div class="onboard-icon">💈</div>
+      <h2 class="onboard-title">Layanan</h2>
+      <p class="onboard-desc">Tambahkan layanan yang tersedia di barbershop kamu.</p>
+      <div class="onboard-form">
+        <div id="ob-services-list">
+          <!-- Default services, editable -->
+          <div class="input-group" style="flex-direction:row; gap:var(--sp-sm);">
+            <input type="text" class="input" value="Potong Rambut" placeholder="Nama layanan" style="flex:2">
+            <input type="number" class="input" value="35000" placeholder="Harga" style="flex:1; font-family:var(--font-mono)">
+          </div>
+          <div class="input-group" style="flex-direction:row; gap:var(--sp-sm);">
+            <input type="text" class="input" value="Cukur Kumis" placeholder="Nama layanan" style="flex:2">
+            <input type="number" class="input" value="15000" placeholder="Harga" style="flex:1; font-family:var(--font-mono)">
+          </div>
+          <div class="input-group" style="flex-direction:row; gap:var(--sp-sm);">
+            <input type="text" class="input" value="Creambath" placeholder="Nama layanan" style="flex:2">
+            <input type="number" class="input" value="50000" placeholder="Harga" style="flex:1; font-family:var(--font-mono)">
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="ob-add-service" style="align-self:flex-start">+ Tambah layanan</button>
+      </div>
+      <div class="onboard-actions">
+        <button class="btn btn-outline" id="ob-back-1">← Kembali</button>
+        <button class="btn btn-primary" id="ob-next-1">Lanjut →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Staff & PIN -->
+    <div class="onboard-step" data-step="2">
+      <div class="onboard-icon">👤</div>
+      <h2 class="onboard-title">Staff & PIN</h2>
+      <p class="onboard-desc">Tambahkan tukang cukur dan buat PIN admin untuk keamanan.</p>
+      <div class="onboard-form">
+        <div class="input-group">
+          <label for="ob-owner-name">Nama Kamu (Pemilik)</label>
+          <input type="text" class="input" id="ob-owner-name" placeholder="Nama pemilik">
+        </div>
+        <div class="input-group">
+          <label for="ob-barber-name">Nama Tukang Cukur 1</label>
+          <input type="text" class="input" id="ob-barber-name" placeholder="Nama tukang cukur">
+        </div>
+        <div class="input-group">
+          <label for="ob-pin">PIN Admin (4 digit)</label>
+          <input type="password" class="input" id="ob-pin" placeholder="••••" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" style="font-family:var(--font-mono); letter-spacing:0.5em; text-align:center; font-size:var(--fs-xl)">
+        </div>
+      </div>
+      <div class="onboard-actions">
+        <button class="btn btn-outline" id="ob-back-2">← Kembali</button>
+        <button class="btn btn-primary" id="ob-finish">Mulai Pangkas! ✂️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================
+       APP SHELL (hidden until logged in)
+       ============================================ -->
+  <div id="app" style="display:none">
+
+    <!-- Top Bar -->
+    <header id="topbar">
+      <div class="topbar-left">
+        <span class="topbar-shop" id="topbar-shop-name">Barbershop</span>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-user" id="topbar-user">
+          <div class="avatar">A</div>
+          <span class="topbar-user-name" id="topbar-user-name">Admin</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Container -->
+    <main id="page-container">
+
+      <!-- ========== HOME PAGE ========== -->
+      <div class="page active" id="page-home">
+        <div class="home-greeting">
+          <div class="greeting-text" id="greeting-text">Selamat pagi,</div>
+          <div class="greeting-name" id="greeting-name">Admin 👋</div>
+        </div>
+
+        <!-- Today's Stats -->
+        <div class="home-stats">
+          <div class="home-stat">
+            <div class="home-stat-icon">💰</div>
+            <div class="home-stat-value mono" id="stat-revenue">Rp 0</div>
+            <div class="home-stat-label">Pendapatan</div>
+          </div>
+          <div class="home-stat">
+            <div class="home-stat-icon">✂️</div>
+            <div class="home-stat-value mono" id="stat-customers">0</div>
+            <div class="home-stat-label">Pelanggan</div>
+          </div>
+          <div class="home-stat">
+            <div class="home-stat-icon">📋</div>
+            <div class="home-stat-value mono" id="stat-queue">0</div>
+            <div class="home-stat-label">Antrian</div>
+          </div>
+          <div class="home-stat">
+            <div class="home-stat-icon">👥</div>
+            <div class="home-stat-value mono" id="stat-members">0</div>
+            <div class="home-stat-label">Member</div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="section">
+          <div class="section-title">Aksi Cepat</div>
+          <div class="quick-actions">
+            <div class="quick-action" data-action="new-transaction">
+              <div class="quick-action-icon">💰</div>
+              <div class="quick-action-label">Kasir</div>
+            </div>
+            <div class="quick-action" data-action="add-queue">
+              <div class="quick-action-icon">📋</div>
+              <div class="quick-action-label">Antrian</div>
+            </div>
+            <div class="quick-action" data-action="add-member">
+              <div class="quick-action-icon">👤</div>
+              <div class="quick-action-label">Member</div>
+            </div>
+            <div class="quick-action" data-action="view-reports">
+              <div class="quick-action-icon">📊</div>
+              <div class="quick-action-label">Laporan</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="section">
+          <div class="section-title">
+            Transaksi Terakhir
+            <span class="card-action" id="view-all-tx">Lihat semua</span>
+          </div>
+          <div class="recent-list" id="recent-transactions">
+            <!-- Empty state (default) -->
+            <div class="empty">
+              <div class="empty-icon">📋</div>
+              <div class="empty-title">Belum ada transaksi</div>
+              <div class="empty-text">Transaksi hari ini akan muncul di sini</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== KASIR (POS) PAGE ========== -->
+      <div class="page" id="page-kasir">
+        <div class="kasir-layout">
+          <!-- Barber Selector -->
+          <div class="section">
+            <div class="section-title">Tukang Cukur</div>
+            <div class="barber-selector" id="barber-selector">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+
+          <!-- Customer Input -->
+          <div class="section">
+            <div class="kasir-customer">
+              <input type="text" class="input" id="kasir-customer-name" placeholder="Nama pelanggan (opsional)">
+              <button class="btn btn-icon btn-outline" id="kasir-search-member" title="Cari member">👥</button>
+            </div>
+          </div>
+
+          <!-- Service Grid -->
+          <div class="section">
+            <div class="section-title">Pilih Layanan</div>
+            <div class="svc-grid" id="service-grid">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Cart Peek Bar -->
+        <div class="cart-peek" id="cart-peek">
+          <div class="cart-peek-left">
+            <div class="cart-peek-count" id="cart-count">0</div>
+            <div class="cart-peek-label">item dipilih</div>
+          </div>
+          <div class="cart-peek-total" id="cart-total">Rp 0</div>
+        </div>
+      </div>
+
+      <!-- ========== ANTRIAN (QUEUE) PAGE ========== -->
+      <div class="page" id="page-antrian">
+        <div class="antrian-header">
+          <div>
+            <div class="page-title" style="margin-bottom:0">Antrian</div>
+            <div class="fs-small text-muted">Kelola antrian pelanggan</div>
+          </div>
+          <button class="btn btn-primary btn-sm" id="add-queue-btn">+ Tambah</button>
+        </div>
+
+        <!-- Filter chips -->
+        <div class="antrian-filters" id="antrian-filters">
+          <div class="chip active" data-filter="all">Semua</div>
+          <div class="chip" data-filter="waiting">Menunggu</div>
+          <div class="chip" data-filter="serving">Dilayani</div>
+          <div class="chip" data-filter="done">Selesai</div>
+        </div>
+
+        <!-- Queue List -->
+        <div class="antrian-list" id="antrian-list">
+          <div class="empty">
+            <div class="empty-icon">📋</div>
+            <div class="empty-title">Antrian kosong</div>
+            <div class="empty-text">Tambah pelanggan ke antrian untuk mulai</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== MEMBER PAGE ========== -->
+      <div class="page" id="page-member">
+        <div class="flex items-center justify-between mb-lg">
+          <div class="page-title" style="margin-bottom:0">Member</div>
+          <button class="btn btn-primary btn-sm" id="add-member-btn">+ Tambah</button>
+        </div>
+
+        <!-- Search -->
+        <div class="member-search">
+          <div class="search-input">
+            <input type="text" class="input" id="member-search-input" placeholder="Cari member...">
+          </div>
+        </div>
+
+        <!-- Member List -->
+        <div class="member-list" id="member-list">
+          <div class="empty">
+            <div class="empty-icon">👥</div>
+            <div class="empty-title">Belum ada member</div>
+            <div class="empty-text">Daftarkan pelanggan setia sebagai member</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== LAINNYA (MORE) PAGE ========== -->
+      <div class="page" id="page-lainnya">
+        <div class="page-title">Lainnya</div>
+
+        <!-- Main menu (shown by default) -->
+        <div id="lainnya-menu">
+          <!-- Operations -->
+          <div class="admin-menu">
+            <div class="admin-menu-title">Operasional</div>
+            <div class="list-item" data-subpage="janji">
+              <div class="list-item-icon">📅</div>
+              <div class="list-item-content">
+                <div class="list-item-title">Janji Temu</div>
+                <div class="list-item-subtitle">Kelola jadwal booking</div>
+              </div>
+              <div class="list-item-trail">→</div>
+            </div>
+            <div class="list-item" data-subpage="hutang">
+              <div class="list-item-icon">📝</div>
+              <div class="list-item-content">
+                <div class="list-item-title">Hutang</div>
+                <div class="list-item-subtitle">Catatan piutang pelanggan</div>
+              </div>
+              <div class="list-item-trail">→</div>
+            </div>
+            <div class="list-item" data-subpage="belanja">
+              <div class="list-item-icon">🛒</div>
+              <div class="list-item-content">
+                <div class="list-item-title">Belanja</div>
+                <div class="list-item-subtitle">Pencatatan pengeluaran</div>
+              </div>
+              <div class="list-item-trail">→</div>
+            </div>
+            <div class="list-item" data-subpage="laporan">
+              <div class="list-item-icon">📊</div>
+              <div class="list-item-content">
+                <div class="list-item-title">Laporan</div>
+                <div class="list-item-subtitle">Ringkasan pendapatan & statistik</div>
+              </div>
+              <div class="list-item-trail">→</div>
+            </div>
+          </div>
+
+          <!-- Settings -->
+          <div class="admin-menu">
+            <div class="admin-menu-title">Pengaturan</div>
+            <div class="list-item" data-subpage="admin-toko">
+              <div class="list-item-icon">🏪</div>
+              <div class="list-item-content">
+                <div class="list-item-title">Info Toko</div>
+                <div class="list-item-subtitle">Nama, alamat, jam operasional</div>
+              </div>
+              <div class="list-item-trail">→</div>
+            </div>
+            <div class="list-item" data-subpage="admin-layanan">
+              <div class="list-item-icon">💈</div>
+              <div class="list-item-content">
+                <div class="list-item-title">Layanan & Harga</div>
+                <div class="list-item-subtitle">Kelola daftar layanan</div>
+              </div>
+              <div class="list-item-trail">→</div>
+            </div>
+            <div class="list-item" data-subpage="admin-staff">
+              <div class="list-item-icon">👤</div>
+              <div class="list-item-content">
+                <div class="list-item-title">Staff</div>
+                <div class="list-item-subtitle">Kelola tukang cukur & kasir</div>
+              </div>
+              <div class="list-item-trail">→</div>
+            </div>
+            <div class="list-item" data-subpage="admin-pin">
+              <div class="list-item-icon">🔒</div>
+              <div class="list-item-content">
+                <div class="list-item-title">Keamanan</div>
+                <div class="list-item-subtitle">Ubah PIN, kelola akses</div>
+              </div>
+              <div class="list-item-trail">→</div>
+            </div>
+          </div>
+
+          <!-- Logout -->
+          <button class="logout-btn" id="btn-logout">
+            🚪 Keluar
+          </button>
+
+          <!-- Version -->
+          <div class="admin-version">
+            <span>Pangkas</span> v1.0.0
+          </div>
+        </div>
+
+        <!-- Sub-pages (hidden by default, shown when menu item clicked) -->
+        <div class="subpage" id="subpage-janji">
+          <div class="subpage-header">
+            <div class="subpage-back" data-back="lainnya">←</div>
+            <h2>Janji Temu</h2>
+          </div>
+          <!-- Calendar -->
+          <div class="calendar-header">
+            <div class="calendar-nav">
+              <button class="btn btn-icon btn-ghost btn-sm" id="cal-prev">←</button>
+              <div class="calendar-month" id="cal-month">April 2026</div>
+              <button class="btn btn-icon btn-ghost btn-sm" id="cal-next">→</button>
+            </div>
+            <button class="btn btn-primary btn-sm" id="add-appointment-btn">+ Tambah</button>
+          </div>
+          <div class="calendar-grid" id="calendar-grid">
+            <div class="calendar-day-label">Min</div>
+            <div class="calendar-day-label">Sen</div>
+            <div class="calendar-day-label">Sel</div>
+            <div class="calendar-day-label">Rab</div>
+            <div class="calendar-day-label">Kam</div>
+            <div class="calendar-day-label">Jum</div>
+            <div class="calendar-day-label">Sab</div>
+            <!-- Calendar days filled by JS -->
+          </div>
+          <div class="section-title" style="margin-top:var(--sp-lg)">
+            Janji Hari Ini
+          </div>
+          <div class="appointment-list" id="appointment-list">
+            <div class="empty">
+              <div class="empty-icon">📅</div>
+              <div class="empty-title">Tidak ada janji</div>
+              <div class="empty-text">Belum ada janji temu untuk hari ini</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subpage" id="subpage-hutang">
+          <div class="subpage-header">
+            <div class="subpage-back" data-back="lainnya">←</div>
+            <h2>Hutang</h2>
+          </div>
+          <div class="hutang-summary">
+            <div class="stat-card">
+              <div class="stat-label">Total Piutang</div>
+              <div class="stat-number" id="hutang-total" style="color:var(--ember)">Rp 0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Sudah Bayar</div>
+              <div class="stat-number" id="hutang-paid" style="color:var(--sage)">Rp 0</div>
+            </div>
+          </div>
+          <div class="section-title">
+            Daftar Hutang
+            <button class="btn btn-primary btn-sm" id="add-hutang-btn">+ Tambah</button>
+          </div>
+          <div class="hutang-list" id="hutang-list">
+            <div class="empty">
+              <div class="empty-icon">📝</div>
+              <div class="empty-title">Tidak ada hutang</div>
+              <div class="empty-text">Belum ada catatan piutang</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subpage" id="subpage-belanja">
+          <div class="subpage-header">
+            <div class="subpage-back" data-back="lainnya">←</div>
+            <h2>Belanja</h2>
+          </div>
+          <div class="hutang-summary">
+            <div class="stat-card">
+              <div class="stat-label">Total Bulan Ini</div>
+              <div class="stat-number" id="belanja-total" style="color:var(--ember)">Rp 0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Jumlah Item</div>
+              <div class="stat-number" id="belanja-count">0</div>
+            </div>
+          </div>
+          <div class="section-title">
+            Pengeluaran
+            <button class="btn btn-primary btn-sm" id="add-belanja-btn">+ Tambah</button>
+          </div>
+          <div class="belanja-list" id="belanja-list">
+            <div class="empty">
+              <div class="empty-icon">🛒</div>
+              <div class="empty-title">Belum ada pengeluaran</div>
+              <div class="empty-text">Catat pengeluaran untuk melacak belanja</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subpage" id="subpage-laporan">
+          <div class="subpage-header">
+            <div class="subpage-back" data-back="lainnya">←</div>
+            <h2>Laporan</h2>
+          </div>
+          <!-- Period selector -->
+          <div class="report-period" id="report-period">
+            <div class="chip active" data-period="today">Hari Ini</div>
+            <div class="chip" data-period="week">Minggu Ini</div>
+            <div class="chip" data-period="month">Bulan Ini</div>
+            <div class="chip" data-period="year">Tahun Ini</div>
+          </div>
+          <!-- Summary -->
+          <div class="report-summary" id="report-summary">
+            <div class="stat-card">
+              <div class="stat-label">Pendapatan</div>
+              <div class="stat-number" style="color:var(--sage)">Rp 0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Pengeluaran</div>
+              <div class="stat-number" style="color:var(--ember)">Rp 0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Laba Bersih</div>
+              <div class="stat-number" style="color:var(--teal)">Rp 0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Pelanggan</div>
+              <div class="stat-number">0</div>
+            </div>
+          </div>
+          <!-- Chart -->
+          <div class="section-title">Grafik Pendapatan</div>
+          <div class="report-chart-area" id="report-chart">
+            <div class="chart-bars" id="chart-bars">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+          <!-- Top services -->
+          <div class="section-title">Layanan Terpopuler</div>
+          <div id="report-top-services">
+            <div class="empty">
+              <div class="empty-icon">📊</div>
+              <div class="empty-title">Belum ada data</div>
+              <div class="empty-text">Data akan muncul setelah ada transaksi</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subpage" id="subpage-admin-toko">
+          <div class="subpage-header">
+            <div class="subpage-back" data-back="lainnya">←</div>
+            <h2>Info Toko</h2>
+          </div>
+          <div class="card">
+            <div class="flex-col gap-lg">
+              <div class="input-group">
+                <label for="admin-shop-name">Nama Barbershop</label>
+                <input type="text" class="input" id="admin-shop-name" placeholder="Nama barbershop">
+              </div>
+              <div class="input-group">
+                <label for="admin-shop-address">Alamat</label>
+                <input type="text" class="input" id="admin-shop-address" placeholder="Alamat lengkap">
+              </div>
+              <div class="input-group">
+                <label for="admin-shop-phone">No. Telepon</label>
+                <input type="tel" class="input" id="admin-shop-phone" placeholder="08123456789">
+              </div>
+              <div class="grid-2">
+                <div class="input-group">
+                  <label for="admin-open-time">Jam Buka</label>
+                  <input type="time" class="input" id="admin-open-time" value="08:00">
+                </div>
+                <div class="input-group">
+                  <label for="admin-close-time">Jam Tutup</label>
+                  <input type="time" class="input" id="admin-close-time" value="21:00">
+                </div>
+              </div>
+              <button class="btn btn-primary btn-full" id="save-shop-info">Simpan</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="subpage" id="subpage-admin-layanan">
+          <div class="subpage-header">
+            <div class="subpage-back" data-back="lainnya">←</div>
+            <h2>Layanan & Harga</h2>
+          </div>
+          <div class="section-title">
+            Daftar Layanan
+            <button class="btn btn-primary btn-sm" id="add-service-btn">+ Tambah</button>
+          </div>
+          <div id="admin-service-list">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+
+        <div class="subpage" id="subpage-admin-staff">
+          <div class="subpage-header">
+            <div class="subpage-back" data-back="lainnya">←</div>
+            <h2>Staff</h2>
+          </div>
+          <div class="section-title">
+            Daftar Staff
+            <button class="btn btn-primary btn-sm" id="add-staff-btn">+ Tambah</button>
+          </div>
+          <div id="admin-staff-list">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+
+        <div class="subpage" id="subpage-admin-pin">
+          <div class="subpage-header">
+            <div class="subpage-back" data-back="lainnya">←</div>
+            <h2>Keamanan</h2>
+          </div>
+          <div class="card">
+            <div class="flex-col gap-lg">
+              <div class="input-group">
+                <label for="admin-old-pin">PIN Lama</label>
+                <input type="password" class="input" id="admin-old-pin" maxlength="4" inputmode="numeric" placeholder="••••" style="font-family:var(--font-mono); letter-spacing:0.5em; text-align:center">
+              </div>
+              <div class="input-group">
+                <label for="admin-new-pin">PIN Baru</label>
+                <input type="password" class="input" id="admin-new-pin" maxlength="4" inputmode="numeric" placeholder="••••" style="font-family:var(--font-mono); letter-spacing:0.5em; text-align:center">
+              </div>
+              <div class="input-group">
+                <label for="admin-confirm-pin">Konfirmasi PIN Baru</label>
+                <input type="password" class="input" id="admin-confirm-pin" maxlength="4" inputmode="numeric" placeholder="••••" style="font-family:var(--font-mono); letter-spacing:0.5em; text-align:center">
+              </div>
+              <button class="btn btn-primary btn-full" id="save-pin">Ubah PIN</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav id="bottom-nav" class="bottom-nav">
+      <div class="nav-item active" data-page="home">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Home</span>
+      </div>
+      <div class="nav-item" data-page="kasir">
+        <span class="nav-icon">💰</span>
+        <span class="nav-label">Kasir</span>
+      </div>
+      <div class="nav-item" data-page="antrian">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Antrian</span>
+        <span class="nav-badge" id="nav-badge-antrian" style="display:none">0</span>
+      </div>
+      <div class="nav-item" data-page="member">
+        <span class="nav-icon">👥</span>
+        <span class="nav-label">Member</span>
+      </div>
+      <div class="nav-item" data-page="lainnya">
+        <span class="nav-icon">☰</span>
+        <span class="nav-label">Lainnya</span>
+      </div>
+    </nav>
+
+    <!-- Cart / Bottom Sheet -->
+    <div class="sheet-backdrop" id="sheet-backdrop"></div>
+    <div class="bottom-sheet" id="cart-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h3>🛒 Keranjang</h3>
+        <button class="btn btn-ghost btn-sm" id="clear-cart">Hapus semua</button>
+      </div>
+      <div class="sheet-body">
+        <div id="cart-items">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+      <div class="sheet-footer">
+        <div class="cart-total">
+          <div class="cart-total-label">Total</div>
+          <div class="cart-total-amount" id="sheet-total">Rp 0</div>
+        </div>
+        <button class="btn btn-primary btn-full btn-lg" id="btn-checkout" style="margin-top:var(--sp-md)">
+          Bayar Sekarang
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal" id="modal">
+        <div class="modal-header">
+          <h3 id="modal-title">Modal</h3>
+          <button class="modal-close" id="modal-close">✕</button>
+        </div>
+        <div class="modal-body" id="modal-body">
+          <!-- Dynamic content -->
+        </div>
+        <div class="modal-footer" id="modal-footer">
+          <!-- Dynamic buttons -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/db.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/pages/login.js"></script>
+  <script src="js/pages/onboarding.js"></script>
+  <script src="js/pages/home.js"></script>
+  <script src="js/pages/kasir.js"></script>
+  <script src="js/pages/antrian.js"></script>
+  <script src="js/pages/janji.js"></script>
+  <script src="js/pages/member.js"></script>
+  <script src="js/pages/laporan.js"></script>
+  <script src="js/pages/hutang.js"></script>
+  <script src="js/pages/belanja.js"></script>
+  <script src="js/pages/admin.js"></script>
+</body>
+</html>
