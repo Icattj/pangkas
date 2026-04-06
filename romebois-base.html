@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Pangkas</title>
+<title>Rome Bois Barbershop</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -189,14 +189,11 @@ select.finp{cursor:pointer}
 <!-- STRUK PRINT -->
 <div id="struk-print"></div>
 
-<!-- ONBOARDING -->
-<div id="onboarding" style="display:none;position:fixed;inset:0;z-index:1000;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;gap:1.5rem"></div>
-
 <!-- LOGIN -->
 <div id="login">
   <div class="login-logo">
     <div style="width:80px;height:80px;margin:0 auto;background:var(--s1);border-radius:50%;border:2px solid var(--teal);display:flex;align-items:center;justify-content:center;font-size:2rem">💈</div>
-    <div class="brand" id="loginBrand">PANGKAS</div>
+    <div class="brand">ROME BOIS</div>
     <div class="sub">Barbershop Management</div>
   </div>
   <div class="login-card">
@@ -230,7 +227,7 @@ select.finp{cursor:pointer}
 <div id="app">
   <div class="topbar">
     <div class="topbar-left">
-      <div class="topbar-logo" id="topLogo">💈 PANGKAS</div>
+      <div class="topbar-logo">💈 ROME BOIS</div>
       <div class="topbar-user" id="topUser">—</div>
     </div>
     <div class="topbar-right">
@@ -272,9 +269,7 @@ DB.def('services',[
 DB.def('transactions',[]);
 DB.def('appointments',[]);
 DB.def('members',[]);
-DB.def('settings',{commission:40,memberVisits:10,memberReward:'1x Potong Gratis',shopName:'',shopAddress:'',shopPhone:'',shopTagline:'',queueEstimate:20});
-DB.def('queue',[]);
-DB.def('firstRun',true);
+DB.def('settings',{commission:40,memberVisits:10,memberReward:'1x Potong Gratis'});
 DB.def('expenses',[]);
 DB.def('expense_categories',['Produk Rambut','Peralatan','Sewa','Listrik & Air','Gaji','Konsumsi','Lain-lain']);
 DB.def('debts',[]);
@@ -294,117 +289,9 @@ let cart = [];
 let cartBarber = '';
 let calDate = new Date();
 
-// ── HELPERS ──
-function getShopName(){ const s=DB.get('settings')||{}; return s.shopName||'Pangkas'; }
-function waLink(phone,msg){ const p=(phone||'').replace(/[^0-9]/g,'').replace(/^0/,'62'); return 'https://wa.me/'+p+'?text='+encodeURIComponent(msg); }
-
-// ══════════════════════════════════════════════
-// ONBOARDING (first run)
-// ══════════════════════════════════════════════
-function checkFirstRun(){
-  const s=DB.get('settings')||{};
-  if(DB.get('firstRun')===true && !s.shopName){
-    document.getElementById('login').style.display='none';
-    document.getElementById('app').style.display='none';
-    document.getElementById('onboarding').style.display='flex';
-    renderOnboarding();
-    return true;
-  }
-  return false;
-}
-
-let obStep=1;
-function renderOnboarding(){
-  const el=document.getElementById('onboarding');
-  const s=DB.get('settings')||{};
-  el.innerHTML=`
-  <div class="login-logo">
-    <div style="width:80px;height:80px;margin:0 auto;background:var(--s1);border-radius:50%;border:2px solid var(--teal);display:flex;align-items:center;justify-content:center;font-size:2rem">💈</div>
-    <div class="brand">PANGKAS</div>
-    <div class="sub">Setup Awal</div>
-  </div>
-  <div class="login-card" style="width:340px">
-    <div style="display:flex;justify-content:center;gap:.5rem;margin-bottom:1rem">
-      <div style="width:10px;height:10px;border-radius:50%;background:${obStep>=1?'var(--teal)':'var(--b1)'}"></div>
-      <div style="width:10px;height:10px;border-radius:50%;background:${obStep>=2?'var(--teal)':'var(--b1)'}"></div>
-      <div style="width:10px;height:10px;border-radius:50%;background:${obStep>=3?'var(--teal)':'var(--b1)'}"></div>
-    </div>
-    ${obStep===1?`
-      <h3>📍 Info Toko</h3>
-      <p style="font-size:.72rem;color:var(--ash);margin-bottom:.8rem">Langkah 1 dari 3</p>
-      <div class="field"><label>Nama Toko *</label><input class="finp" id="ob-name" placeholder="Contoh: Rome Bois Barbershop" value="${s.shopName||''}"></div>
-      <div class="field"><label>Alamat</label><input class="finp" id="ob-addr" placeholder="Jl. Raya No. 1" value="${s.shopAddress||''}"></div>
-      <div class="field"><label>No HP / WhatsApp</label><input class="finp" id="ob-phone" placeholder="08xx-xxxx-xxxx" value="${s.shopPhone||''}"></div>
-      <button class="btn btn-teal btn-full" onclick="obNext1()">Lanjut →</button>
-    `:''}
-    ${obStep===2?`
-      <h3>✂️ Layanan</h3>
-      <p style="font-size:.72rem;color:var(--ash);margin-bottom:.8rem">Langkah 2 — layanan default sudah disiapkan, bisa diedit nanti di Admin</p>
-      <div style="text-align:left">
-      ${(DB.get('services')||[]).map(s=>`<div style="display:flex;justify-content:space-between;padding:.3rem 0;font-size:.8rem;border-bottom:1px solid rgba(255,255,255,.04)"><span>${s.name}</span><span style="color:var(--teal)">${rp(s.price)}</span></div>`).join('')}
-      </div>
-      <div style="display:flex;gap:.5rem;margin-top:1rem">
-        <button class="btn btn-outline" onclick="obStep=1;renderOnboarding()">← Kembali</button>
-        <button class="btn btn-teal" style="flex:1" onclick="obStep=3;renderOnboarding()">Lanjut →</button>
-      </div>
-    `:''}
-    ${obStep===3?`
-      <h3>👤 Admin Pertama</h3>
-      <p style="font-size:.72rem;color:var(--ash);margin-bottom:.8rem">Langkah 3 — buat akun admin</p>
-      <div class="field"><label>Nama</label><input class="finp" id="ob-admin-name" placeholder="Nama kamu" value="Admin"></div>
-      <div class="field"><label>PIN (4 digit)</label><input class="finp" id="ob-admin-pin" type="number" maxlength="4" placeholder="1234"></div>
-      <div style="display:flex;gap:.5rem;margin-top:1rem">
-        <button class="btn btn-outline" onclick="obStep=2;renderOnboarding()">← Kembali</button>
-        <button class="btn btn-teal" style="flex:1" onclick="obFinish()">Mulai Pangkas! 🚀</button>
-      </div>
-    `:''}
-  </div>
-  <div style="font-size:.65rem;color:var(--ash);margin-top:1rem">Powered by Pangkas 💈</div>`;
-}
-
-function obNext1(){
-  const name=document.getElementById('ob-name')?.value?.trim();
-  if(!name){alert('Nama toko wajib diisi');return;}
-  const s=DB.get('settings')||{};
-  s.shopName=name;
-  s.shopAddress=document.getElementById('ob-addr')?.value?.trim()||'';
-  s.shopPhone=document.getElementById('ob-phone')?.value?.trim()||'';
-  DB.set('settings',s);
-  obStep=2;renderOnboarding();
-}
-
-function obFinish(){
-  const name=document.getElementById('ob-admin-name')?.value?.trim()||'Admin';
-  const pin=String(document.getElementById('ob-admin-pin')?.value||'').trim();
-  if(pin.length!==4){alert('PIN harus 4 digit');return;}
-  const users=DB.get('users')||[];
-  // Replace default user or add new
-  const existing=users.findIndex(u=>u.id==='anang');
-  const newUser={id:'admin-'+Date.now(),name,pin,role:'admin'};
-  if(existing>=0) users[existing]=newUser; else users.push(newUser);
-  DB.set('users',users);
-  DB.set('firstRun',false);
-  document.getElementById('onboarding').style.display='none';
-  document.getElementById('login').style.display='flex';
-  // Update login screen brand
-  updateLoginBrand();
-}
-
-function updateLoginBrand(){
-  const el=document.getElementById('loginBrand');
-  if(el) el.textContent=getShopName().toUpperCase();
-  const logo=document.getElementById('topLogo');
-  if(logo) logo.textContent='💈 '+getShopName();
-}
-
 // ══════════════════════════════════════════════
 // LOGIN
 // ══════════════════════════════════════════════
-// Check first run on load
-if(!checkFirstRun()){
-  updateLoginBrand();
-}
-
 function pinKey(k){
   if(pinBuffer.length>=4) return;
   pinBuffer+=k;
@@ -427,7 +314,7 @@ function tryLogin(){
     document.getElementById('app').style.display='flex';
     document.getElementById('topUser').textContent=u.name+(u.role==='admin'?' 👑':'');
     buildNav();
-    showTab('home');
+    showTab('kasir');
   } else {
     document.getElementById('loginErr').textContent='PIN salah, coba lagi';
     pinBuffer='';
@@ -444,8 +331,8 @@ function logout(){
 // ══════════════════════════════════════════════
 // NAVIGATION
 // ══════════════════════════════════════════════
-const TABS_ALL   = [{id:'home',icon:'🏠',label:'Home'},{id:'kasir',icon:'💰',label:'Kasir'},{id:'antrian',icon:'📋',label:'Antrian'},{id:'janji',icon:'📅',label:'Janji'},{id:'member',icon:'👥',label:'Member'},{id:'birthday',icon:'🎂',label:'Ultah'},{id:'laporan',icon:'📊',label:'Laporan'},{id:'hutang',icon:'📒',label:'Hutang'},{id:'belanja',icon:'🛒',label:'Belanja'},{id:'admin',icon:'⚙️',label:'Admin'}];
-const TABS_BARBER= [{id:'home',icon:'🏠',label:'Home'},{id:'kasir',icon:'💰',label:'Kasir'},{id:'antrian',icon:'📋',label:'Antrian'},{id:'janji',icon:'📅',label:'Janji'}];
+const TABS_ALL   = [{id:'kasir',icon:'💰',label:'Kasir'},{id:'janji',icon:'📅',label:'Janji'},{id:'member',icon:'👥',label:'Member'},{id:'birthday',icon:'🎂',label:'Ultah'},{id:'laporan',icon:'📊',label:'Laporan'},{id:'hutang',icon:'📒',label:'Hutang'},{id:'belanja',icon:'🛒',label:'Belanja'},{id:'admin',icon:'⚙️',label:'Admin'}];
+const TABS_BARBER= [{id:'kasir',icon:'💰',label:'Kasir'},{id:'janji',icon:'📅',label:'Janji'}];
 
 function buildNav(){
   const tabs = currentUser.role==='admin'?TABS_ALL:TABS_BARBER;
@@ -478,9 +365,7 @@ function showTab(id){
 function renderPanel(id){
   const el=document.getElementById('panel-'+id);
   if(!el) return;
-  if(id==='home') renderHome(el);
-  else if(id==='kasir') renderKasir(el);
-  else if(id==='antrian') renderAntrian(el);
+  if(id==='kasir') renderKasir(el);
   else if(id==='janji') renderJanji(el);
   else if(id==='member') renderMember(el);
   else if(id==='birthday') renderBirthday(el);
@@ -488,168 +373,6 @@ function renderPanel(id){
   else if(id==='hutang') renderHutang(el);
   else if(id==='belanja') renderBelanja(el);
   else if(id==='admin') renderAdmin(el);
-}
-
-// ══════════════════════════════════════════════
-// ══════════════════════════════════════════════
-// HOME DASHBOARD
-// ══════════════════════════════════════════════
-function renderHome(el){
-  const txs=DB.get('transactions')||[];
-  const now=new Date();
-  const todayTx=txs.filter(t=>{const d=new Date(t.date);return d.toDateString()===now.toDateString()});
-  const paidToday=todayTx.filter(t=>!t.isHutang);
-  const totalToday=paidToday.reduce((a,t)=>a+t.total,0);
-  const queue=DB.get('queue')||[];
-  const activeQueue=queue.filter(q=>q.status==='waiting'||q.status==='serving');
-  const members=DB.get('members')||[];
-  const settings=DB.get('settings')||{};
-  const commToday=paidToday.reduce((a,t)=>a+t.commission,0);
-
-  el.innerHTML=`
-  <div class="card">
-    <div class="card-title">📊 Dashboard — ${now.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
-    <div class="grid2" style="margin-bottom:.5rem">
-      <div class="stat-card"><div class="stat-val rp-val">${rp(totalToday)}</div><div class="stat-lbl">Pendapatan Hari Ini</div></div>
-      <div class="stat-card"><div class="stat-val">${todayTx.length}</div><div class="stat-lbl">Transaksi</div></div>
-    </div>
-    <div class="grid3">
-      <div class="stat-card"><div class="stat-val" style="color:var(--gold)">${activeQueue.length}</div><div class="stat-lbl">Antrian Aktif</div></div>
-      <div class="stat-card"><div class="stat-val">${members.length}</div><div class="stat-lbl">Member</div></div>
-      <div class="stat-card"><div class="stat-val rp-val" style="font-size:1rem">${rp(commToday)}</div><div class="stat-lbl">Komisi Hari Ini</div></div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-title">⚡ Aksi Cepat</div>
-    <div class="grid2">
-      <button class="btn btn-teal btn-full" onclick="showTab('kasir')">💰 Transaksi Baru</button>
-      <button class="btn btn-outline btn-full" onclick="showTab('antrian')">📋 Tambah Antrian</button>
-    </div>
-  </div>
-  ${todayTx.length>0?`
-  <div class="card">
-    <div class="card-title">🕐 Transaksi Terakhir</div>
-    <table class="tbl">
-      <thead><tr><th>Waktu</th><th>Customer</th><th>Total</th><th>Bayar</th></tr></thead>
-      <tbody>${[...todayTx].reverse().slice(0,5).map(t=>`
-      <tr>
-        <td style="font-family:monospace;font-size:.68rem">${new Date(t.date).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}</td>
-        <td>${t.customer}</td>
-        <td style="color:${t.isHutang?'var(--ember)':'var(--teal)'};font-weight:600">${rp(t.total)}</td>
-        <td><span class="badge badge-${t.isHutang?'red':t.payMethod==='qris'?'teal':t.payMethod==='tf'?'gold':'gray'}">${t.isHutang?'Hutang':t.payMethod==='qris'?'QRIS':t.payMethod==='tf'?'TF':'Cash'}</span></td>
-      </tr>`).join('')}</tbody>
-    </table>
-  </div>`:'<div class="card"><div class="empty-state"><div class="ei">☀️</div><p>Belum ada transaksi hari ini</p></div></div>'}
-  ${settings.shopName?'':'<div class="card" style="border-color:rgba(245,158,11,.3)"><div style="display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:var(--gold)">⚠️ Nama toko belum diatur — buka Admin → Info Toko</div></div>'}`;
-}
-
-// ══════════════════════════════════════════════
-// ANTRIAN / QUEUE
-// ══════════════════════════════════════════════
-function renderAntrian(el){
-  // Auto-reset: clear old queue items
-  let queue=DB.get('queue')||[];
-  const today=new Date().toDateString();
-  queue=queue.filter(q=>new Date(q.createdAt).toDateString()===today || q.status==='waiting' || q.status==='serving');
-  DB.set('queue',queue);
-
-  const waiting=queue.filter(q=>q.status==='waiting');
-  const serving=queue.filter(q=>q.status==='serving');
-  const done=queue.filter(q=>q.status==='done');
-  const settings=DB.get('settings')||{queueEstimate:20};
-  const est=settings.queueEstimate||20;
-
-  el.innerHTML=`
-  <div class="card">
-    <div class="card-title">📋 Antrian Hari Ini
-      <button class="btn btn-teal btn-sm" onclick="openAddQueue()">+ Walk-in</button>
-    </div>
-    <div class="grid3" style="margin-bottom:.75rem">
-      <div class="stat-card"><div class="stat-val" style="color:var(--gold)">${waiting.length}</div><div class="stat-lbl">Menunggu</div></div>
-      <div class="stat-card"><div class="stat-val" style="color:var(--teal)">${serving.length}</div><div class="stat-lbl">Dilayani</div></div>
-      <div class="stat-card"><div class="stat-val" style="color:var(--ash)">${done.length}</div><div class="stat-lbl">Selesai</div></div>
-    </div>
-    ${waiting.length===0&&serving.length===0?'<div class="empty-state"><div class="ei">📋</div><p>Belum ada antrian</p></div>':''}
-    ${serving.map(q=>`
-    <div style="background:rgba(10,191,188,.08);border:1px solid rgba(10,191,188,.3);border-radius:12px;padding:.75rem;margin-bottom:.5rem">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <span style="font-size:1.3rem;font-weight:800;color:var(--teal);margin-right:.5rem">#${q.number}</span>
-          <span style="font-weight:700">${q.name}</span>
-          <span class="badge badge-teal" style="margin-left:.3rem">Dilayani</span>
-        </div>
-        <button class="btn btn-sm btn-teal" onclick="queueDone('${q.id}')">✅ Selesai</button>
-      </div>
-      <div style="font-size:.72rem;color:var(--ash);margin-top:.3rem">✂️ ${q.service} · 🧑 ${q.barber||'-'}</div>
-    </div>`).join('')}
-    ${waiting.map((q,i)=>`
-    <div style="background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:.75rem;margin-bottom:.5rem">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <span style="font-size:1.3rem;font-weight:800;color:var(--gold);margin-right:.5rem">#${q.number}</span>
-          <span style="font-weight:700">${q.name}</span>
-          <span class="badge badge-gold" style="margin-left:.3rem">Menunggu</span>
-          <span style="font-size:.68rem;color:var(--ash);margin-left:.3rem">~${(i+1)*est} mnt</span>
-        </div>
-        <div style="display:flex;gap:.3rem">
-          <button class="btn btn-sm btn-teal" onclick="queueServe('${q.id}')">Mulai</button>
-          <button class="btn btn-sm btn-danger" onclick="queueCancel('${q.id}')">Batal</button>
-        </div>
-      </div>
-      <div style="font-size:.72rem;color:var(--ash);margin-top:.3rem">✂️ ${q.service}</div>
-    </div>`).join('')}
-  </div>
-  ${done.length>0?`
-  <div class="card">
-    <div class="card-title" style="color:var(--ash)">✅ Selesai Hari Ini (${done.length})</div>
-    ${done.map(q=>`<div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.78rem;opacity:.5"><span>#${q.number} ${q.name} — ${q.service}</span><span>${new Date(q.doneAt||q.createdAt).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}</span></div>`).join('')}
-  </div>`:''}`;
-}
-
-function openAddQueue(){
-  const svcs=(DB.get('services')||[]).filter(s=>s.active);
-  openModal(`<h3>📋 Tambah Antrian</h3>
-    <div class="field"><label>Nama Customer</label><input class="finp" id="q-name" placeholder="Nama"></div>
-    <div class="field"><label>Layanan</label><select class="finp" id="q-svc">${svcs.map(s=>`<option value="${s.name}">${s.name}</option>`).join('')}</select></div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal()">Batal</button>
-      <button class="btn btn-teal" onclick="saveQueue()">Tambah</button>
-    </div>`);
-}
-
-function saveQueue(){
-  const name=document.getElementById('q-name')?.value?.trim();
-  const svc=document.getElementById('q-svc')?.value;
-  if(!name){alert('Nama wajib diisi');return;}
-  const queue=DB.get('queue')||[];
-  const todayQueue=queue.filter(q=>new Date(q.createdAt).toDateString()===new Date().toDateString());
-  const nextNum=(todayQueue.length>0?Math.max(...todayQueue.map(q=>q.number||0)):0)+1;
-  queue.push({id:'q-'+Date.now(),name,service:svc,number:nextNum,status:'waiting',barber:'',createdAt:new Date().toISOString()});
-  DB.set('queue',queue);
-  closeModal();
-  renderAntrian(document.getElementById('panel-antrian'));
-}
-
-function queueServe(id){
-  const queue=DB.get('queue')||[];
-  const q=queue.find(x=>x.id===id);
-  if(q) q.status='serving';
-  DB.set('queue',queue);
-  renderAntrian(document.getElementById('panel-antrian'));
-}
-
-function queueDone(id){
-  const queue=DB.get('queue')||[];
-  const q=queue.find(x=>x.id===id);
-  if(q){q.status='done';q.doneAt=new Date().toISOString();}
-  DB.set('queue',queue);
-  renderAntrian(document.getElementById('panel-antrian'));
-}
-
-function queueCancel(id){
-  if(!confirm('Hapus dari antrian?')) return;
-  DB.set('queue',(DB.get('queue')||[]).filter(q=>q.id!==id));
-  renderAntrian(document.getElementById('panel-antrian'));
 }
 
 // ══════════════════════════════════════════════
@@ -1012,7 +735,7 @@ function printStruk(tx){
   const payLabel = tx.isHutang ? 'HUTANG' : tx.payMethod==='qris' ? 'QRIS' : tx.payMethod==='tf' ? 'Transfer' : 'Cash';
   document.getElementById('struk-print').innerHTML =
     '<div style="text-align:center;margin-bottom:8px">' +
-      '<div style="font-size:14px;font-weight:800;letter-spacing:2px">'+getShopName()+'</div>' +
+      '<div style="font-size:14px;font-weight:800;letter-spacing:2px">ROME BOIS BARBERSHOP</div>' +
       '<div style="font-size:10px">Terima kasih telah berkunjung</div>' +
     '</div>' +
     '<div class="struk-line"></div>' +
@@ -1108,9 +831,8 @@ function renderApptList(date){
     const d=document.createElement('div');d.className='appt-slot';
     d.innerHTML=`<div class="appt-time">${a.time}</div>
     <div class="appt-info"><div class="appt-name">${a.customer}</div>
-    <div class="appt-detail">${a.barber} · ${a.service}${a.phone?' · 📱'+a.phone:''}</div></div>
+    <div class="appt-detail">${a.barber} · ${a.service}</div></div>
     <span class="badge badge-${a.status==='done'?'teal':a.status==='cancel'?'red':'gold'}">${a.status==='done'?'Selesai':a.status==='cancel'?'Batal':'Menunggu'}</span>
-    ${a.phone?`<a href="${waLink(a.phone,'Halo '+a.customer+'! Pengingat: jadwal potong kamu di '+getShopName()+' hari ini jam '+a.time+'. Ditunggu ya! 💈')}" target="_blank" style="background:none;border:1px solid rgba(37,211,102,.3);border-radius:6px;color:#25D366;padding:.15rem .4rem;font-size:.68rem;text-decoration:none;white-space:nowrap">📱 WA</a>`:''}
     <button onclick="deleteAppt('${a.id}')" style="background:none;border:none;color:var(--ember);cursor:pointer;margin-left:.3rem">🗑️</button>`;
     el.appendChild(d);
   });
@@ -1122,7 +844,6 @@ function openAddJanji(){
   const today=new Date().toISOString().split('T')[0];
   openModal(`<h3>📅 Tambah Janji</h3>
     <div class="field"><label>Nama Customer</label><input class="finp" id="aj-name" placeholder="Nama customer"></div>
-    <div class="field"><label>No HP (untuk WA reminder)</label><input class="finp" id="aj-phone" placeholder="08xx-xxxx-xxxx"></div>
     <div class="field"><label>Tanggal</label><input class="finp" type="date" id="aj-date" value="${today}"></div>
     <div class="field"><label>Jam</label><input class="finp" type="time" id="aj-time" value="09:00"></div>
     <div class="field"><label>Barber</label><select class="finp" id="aj-barber">${users.map(u=>`<option value="${u.name}">${u.name}</option>`).join('')}</select></div>
@@ -1136,7 +857,6 @@ function openAddJanji(){
 
 function saveAppt(){
   const name=document.getElementById('aj-name')?.value?.trim();
-  const phone=document.getElementById('aj-phone')?.value?.trim()||'';
   const date=document.getElementById('aj-date')?.value;
   const time=document.getElementById('aj-time')?.value;
   const barber=document.getElementById('aj-barber')?.value;
@@ -1144,7 +864,7 @@ function saveAppt(){
   const note=document.getElementById('aj-note')?.value;
   if(!name||!date||!time){alert('Nama, tanggal, dan jam wajib diisi');return;}
   const appts=DB.get('appointments')||[];
-  appts.push({id:'ap-'+Date.now(),customer:name,phone,date,time,barber,service,note,status:'waiting',createdAt:new Date().toISOString()});
+  appts.push({id:'ap-'+Date.now(),customer:name,date,time,barber,service,note,status:'waiting',createdAt:new Date().toISOString()});
   DB.set('appointments',appts);
   closeModal();
   renderApptList(new Date(date));
@@ -1163,7 +883,7 @@ function deleteAppt(id){
 function renderBirthday(el){
   const members=DB.get('members')||[];
   const settings=DB.get('settings')||{};
-  const shopName=settings.shopName||'Pangkas';
+  const shopName=settings.shopName||'Rome Bois Barbershop';
   const today=new Date();
 
   // Find birthdays: today + upcoming 7 days
@@ -1674,16 +1394,6 @@ function renderAdmin(el){
   const users=DB.get('users')||[];
   const settings=DB.get('settings')||{commission:40,memberVisits:10,memberReward:'1x Potong Gratis'};
   el.innerHTML=`
-  <!-- INFO TOKO -->
-  <div class="card">
-    <div class="card-title">📍 Info Toko</div>
-    <div class="field"><label>Nama Toko</label><input class="finp" id="set-shopname" value="${settings.shopName||''}" placeholder="Nama barbershop"></div>
-    <div class="field"><label>Alamat</label><input class="finp" id="set-shopaddr" value="${settings.shopAddress||''}" placeholder="Alamat toko"></div>
-    <div class="field"><label>No HP / WhatsApp</label><input class="finp" id="set-shopphone" value="${settings.shopPhone||''}" placeholder="08xx-xxxx-xxxx"></div>
-    <div class="field"><label>Tagline</label><input class="finp" id="set-shoptagline" value="${settings.shopTagline||''}" placeholder="(opsional)"></div>
-    <button class="btn btn-teal" onclick="saveShopInfo()">Simpan Info Toko</button>
-  </div>
-
   <!-- USERS / PIN -->
   <div class="card">
     <div class="card-title">Manajemen Barber & PIN
@@ -1753,20 +1463,7 @@ function renderAdmin(el){
     <div class="field"><label>Reward Member</label>
       <input class="finp" id="set-mreward" value="${settings.memberReward}" placeholder="contoh: 1x Potong Gratis">
     </div>
-    <div class="field"><label>Estimasi Waktu per Antrian (menit)</label>
-      <input class="finp" type="number" id="set-qest" value="${settings.queueEstimate||20}" min="5" max="120">
-    </div>
     <button class="btn btn-teal" onclick="saveSettings()">Simpan Pengaturan</button>
-  </div>
-
-  <!-- TENTANG -->
-  <div class="card">
-    <div class="card-title">ℹ️ Tentang</div>
-    <div style="text-align:center;padding:.5rem 0">
-      <div style="font-size:1.2rem;font-weight:800;color:var(--teal)">💈 Pangkas v1.0</div>
-      <div style="font-size:.75rem;color:var(--ash);margin-top:.3rem">Aplikasi manajemen barbershop</div>
-      <div style="font-size:.68rem;color:var(--ash);margin-top:.5rem">Made with 💈 by <a href="https://github.com/Icattj" target="_blank" style="color:var(--teal);text-decoration:none">Sentra Technology</a></div>
-    </div>
   </div>`;
 }
 
@@ -1870,24 +1567,11 @@ function deleteService(id){
   renderAdmin(document.getElementById('panel-admin'));
 }
 
-function saveShopInfo(){
-  const s=DB.get('settings')||{};
-  s.shopName=document.getElementById('set-shopname')?.value?.trim()||'';
-  s.shopAddress=document.getElementById('set-shopaddr')?.value?.trim()||'';
-  s.shopPhone=document.getElementById('set-shopphone')?.value?.trim()||'';
-  s.shopTagline=document.getElementById('set-shoptagline')?.value?.trim()||'';
-  DB.set('settings',s);
-  updateLoginBrand();
-  alert('Info toko disimpan!');
-}
-
 function saveSettings(){
-  const s=DB.get('settings')||{};
-  s.commission=parseInt(document.getElementById('set-comm')?.value)||40;
-  s.memberVisits=parseInt(document.getElementById('set-mvisit')?.value)||10;
-  s.memberReward=document.getElementById('set-mreward')?.value||'1x Potong Gratis';
-  s.queueEstimate=parseInt(document.getElementById('set-qest')?.value)||20;
-  DB.set('settings',s);
+  const comm=parseInt(document.getElementById('set-comm')?.value)||40;
+  const mv=parseInt(document.getElementById('set-mvisit')?.value)||10;
+  const mr=document.getElementById('set-mreward')?.value||'1x Potong Gratis';
+  DB.set('settings',{commission:comm,memberVisits:mv,memberReward:mr});
   alert('Pengaturan disimpan!');
 }
 
