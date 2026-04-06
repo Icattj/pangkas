@@ -182,32 +182,6 @@ select.finp{cursor:pointer}
 
 /* ── ADMIN PIN SETUP ── */
 .pin-user-row{display:flex;align-items:center;justify-content:space-between;padding:.5rem .6rem;background:var(--s2);border:1px solid var(--b1);border-radius:8px;margin-bottom:.3rem;font-size:.78rem}
-/* ── BOTTOM NAV ── */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:64px;background:rgba(15,15,26,.95);backdrop-filter:blur(12px);border-top:1px solid rgba(10,191,188,.1);display:flex;justify-content:space-around;align-items:center;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
-.bottom-nav .nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 12px;border-radius:10px;cursor:pointer;transition:all .2s;color:var(--ash);min-width:56px;min-height:44px;justify-content:center}
-.bottom-nav .nav-item.active{color:var(--teal)}
-.bottom-nav .nav-item .nav-icon{font-size:20px}
-.bottom-nav .nav-item .nav-label{font-size:.6rem;font-weight:600}
-.panels{padding-bottom:72px!important}
-
-/* ── TOAST ── */
-.toast-container{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px}
-.toast{padding:10px 16px;border-radius:10px;font-size:.78rem;font-weight:600;color:#fff;animation:slideIn .3s ease;box-shadow:0 4px 16px rgba(0,0,0,.3)}
-.toast-success{background:rgba(16,185,129,.9)}
-.toast-error{background:rgba(239,68,68,.9)}
-.toast-info{background:rgba(10,191,188,.9)}
-@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
-
-/* ── LAINNYA MENU ── */
-.more-menu{padding:.5rem}
-.more-item{display:flex;align-items:center;gap:.75rem;padding:.85rem 1rem;background:var(--s1);border:1px solid var(--b1);border-radius:12px;margin-bottom:.5rem;cursor:pointer;transition:all .18s}
-.more-item:hover{border-color:rgba(10,191,188,.3);background:rgba(10,191,188,.04)}
-.more-item .mi-icon{font-size:1.3rem;width:32px;text-align:center}
-.more-item .mi-text{font-size:.82rem;font-weight:600}
-.more-item .mi-desc{font-size:.68rem;color:var(--ash)}
-
-/* hide old top nav */
-nav#mainNav{display:none!important}
 </style>
 </head>
 <body>
@@ -253,9 +227,6 @@ nav#mainNav{display:none!important}
 </div>
 
 <!-- APP -->
-<!-- TOAST CONTAINER -->
-<div class="toast-container" id="toastContainer"></div>
-
 <div id="app">
   <div class="topbar">
     <div class="topbar-left">
@@ -2459,95 +2430,6 @@ function closeModal(){
 // UTILS
 // ══════════════════════════════════════════════
 function rp(n){return 'Rp '+n.toLocaleString('id-ID');}
-</script>
-<!-- BOTTOM NAV -->
-<div class="bottom-nav" id="bottomNav" style="display:none">
-  <div class="nav-item active" onclick="navTo('home')"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
-  <div class="nav-item" onclick="navTo('kasir')"><div class="nav-icon">💰</div><div class="nav-label">Kasir</div></div>
-  <div class="nav-item" onclick="navTo('antrian')"><div class="nav-icon">📋</div><div class="nav-label">Antrian</div></div>
-  <div class="nav-item" onclick="navTo('member')"><div class="nav-icon">👥</div><div class="nav-label">Member</div></div>
-  <div class="nav-item" onclick="navTo('lainnya')"><div class="nav-icon">☰</div><div class="nav-label">Lainnya</div></div>
-</div>
-
-<script>
-// ── Bottom Nav ──
-function navTo(id){
-  if(id==='lainnya'){
-    showTab('lainnya');
-    renderLainnya(document.getElementById('panel-lainnya'));
-  } else {
-    showTab(id);
-  }
-  // Update active state
-  document.querySelectorAll('.bottom-nav .nav-item').forEach(function(item,i){
-    var tabs=['home','kasir','antrian','member','lainnya'];
-    item.classList.toggle('active',tabs[i]===id);
-  });
-}
-
-// ── Lainnya Menu ──
-function renderLainnya(el){
-  if(!el) return;
-  var isAdmin = currentUser && currentUser.role==='admin';
-  var items = [
-    {id:'janji',icon:'📅',text:'Janji Temu',desc:'Kelola appointment'},
-    {id:'birthday',icon:'🎂',text:'Ultah Member',desc:'Birthday & WA greeting'},
-    {id:'laporan',icon:'📊',text:'Laporan',desc:'Revenue & barber performance'},
-    {id:'hutang',icon:'📒',text:'Hutang',desc:'Track piutang customer'},
-    {id:'belanja',icon:'🛒',text:'Belanja',desc:'Catat pengeluaran'},
-  ];
-  if(isAdmin) items.push({id:'admin',icon:'⚙️',text:'Pengaturan',desc:'Layanan, staff, info toko'});
-  
-  el.innerHTML='<div class="more-menu">'+items.map(function(m){
-    return '<div class="more-item" onclick="showTab(\''+m.id+'\');"><div class="mi-icon">'+m.icon+'</div><div><div class="mi-text">'+m.text+'</div><div class="mi-desc">'+m.desc+'</div></div></div>';
-  }).join('')+'</div>';
-}
-
-// ── Toast Notifications ──
-function showToast(msg,type){
-  type=type||'info';
-  var c=document.getElementById('toastContainer');
-  if(!c) return;
-  var t=document.createElement('div');
-  t.className='toast toast-'+type;
-  t.textContent=msg;
-  c.appendChild(t);
-  setTimeout(function(){t.remove()},3000);
-}
-
-// ── Override login to show bottom nav ──
-var _origTryLogin=tryLogin;
-tryLogin=function(){
-  _origTryLogin.apply(this,arguments);
-  if(currentUser){
-    var bn=document.getElementById('bottomNav');
-    if(bn) bn.style.display='flex';
-  }
-};
-
-// ── Override logout to hide bottom nav ──
-var _origLogout=logout;
-logout=function(){
-  var bn=document.getElementById('bottomNav');
-  if(bn) bn.style.display='none';
-  _origLogout.apply(this,arguments);
-};
-
-// ── Add lainnya to tab system ──
-var _origBuildNav=buildNav;
-buildNav=function(){
-  _origBuildNav.apply(this,arguments);
-  // Add lainnya panel if not exists
-  var panels=document.getElementById('panels');
-  if(panels && !document.getElementById('panel-lainnya')){
-    var p=document.createElement('div');
-    p.className='panel';p.id='panel-lainnya';
-    panels.appendChild(p);
-  }
-  // Show bottom nav
-  var bn=document.getElementById('bottomNav');
-  if(bn) bn.style.display='flex';
-};
 </script>
 </body>
 </html>
