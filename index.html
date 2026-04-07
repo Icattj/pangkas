@@ -110,6 +110,8 @@ select.finp{cursor:pointer}
 .svc-btn.sel{background:rgba(10,191,188,.1);border-color:rgba(10,191,188,.5);box-shadow:0 0 12px rgba(10,191,188,.15)}
 .svc-btn .svc-name{font-size:.78rem;font-weight:600;margin-bottom:.2rem}
 .svc-btn .svc-price{font-size:.72rem;color:var(--teal)}
+.svc-btn.bundle{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.05)}
+.svc-btn.bundle .svc-name::before{content:'📦 ';font-size:.7rem}
 .svc-btn .svc-qty{position:absolute;top:4px;right:6px;background:var(--teal);color:#fff;font-size:.6rem;font-weight:800;border-radius:10px;padding:.05rem .35rem}
 .cart-item{display:flex;align-items:center;justify-content:space-between;padding:.4rem .6rem;background:var(--s2);border:1px solid var(--b1);border-radius:8px;margin-bottom:.3rem;font-size:.78rem}
 .cart-total{font-size:1.1rem;font-weight:800;color:var(--teal);text-align:right;padding:.5rem 0}
@@ -294,9 +296,11 @@ DB.def('services',[
   {id:'s1',name:'Potong Rambut',price:35000,active:true},
   {id:'s2',name:'Cukur Jenggot',price:20000,active:true},
   {id:'s3',name:'Cuci Rambut',price:15000,active:true},
-  {id:'s4',name:'Potong + Cuci',price:45000,active:true},
+  {id:'s4',name:'Potong + Cuci',price:45000,active:true,isBundle:true},
   {id:'s5',name:'Warna Rambut',price:100000,active:true},
   {id:'s6',name:'Hair Tonic',price:25000,active:true},
+  {id:'s7',name:'Paket Lengkap',price:70000,active:true,isBundle:true},
+  {id:'s8',name:'Creambath',price:50000,active:true},
 ]);
 DB.def('transactions',[]);
 DB.def('appointments',[]);
@@ -738,7 +742,7 @@ function renderSvcGrid(){
   svcs.forEach(s=>{
     const qty=cart.filter(c=>c.id===s.id).length;
     const btn=document.createElement('div');
-    btn.className='svc-btn'+(qty>0?' sel':'');
+    btn.className='svc-btn'+(qty>0?' sel':'')+(s.isBundle?' bundle':'');
     btn.innerHTML=(qty>0?`<div class="svc-qty">${qty}</div>`:'')+
       `<div class="svc-name">${s.name}</div><div class="svc-price">${rp(s.price)}</div>`;
     btn.onclick=()=>{ cart.push({id:s.id,name:s.name,price:s.price}); renderSvcGrid(); renderCart(); };
@@ -1327,6 +1331,7 @@ function renderMember(el){
         <div>
           <div class="member-name">${m.name}</div>
           <div class="member-visits">${m.visits||0}/${settings.memberVisits} kunjungan · ${m.phone||'-'}</div>
+          ${m.notes?`<div style="font-size:.68rem;color:var(--ash);margin-top:.2rem">📝 ${m.notes}</div>`:''}
         </div>
         <div style="display:flex;gap:.3rem">
           ${currentUser.role==='admin'?'<button class="btn btn-sm btn-outline" onclick="addVisitManual(\''+m.id+'\')">+1</button><button class="btn btn-sm btn-danger" onclick="deleteMember(\''+m.id+'\')">&#128465;</button>':''}
@@ -1353,6 +1358,9 @@ function openAddMember(){
   const f3=document.createElement('div'); f3.className='field';
   f3.innerHTML='<label>Tanggal Lahir <span style="color:var(--ash);font-weight:400">(opsional)</span></label><input class="finp" type="date" id="m-bday">';
   box.appendChild(f3);
+  const f4=document.createElement('div'); f4.className='field';
+  f4.innerHTML='<label>Catatan / Preferensi <span style="color:var(--ash);font-weight:400">(opsional)</span></label><input class="finp" id="m-notes" placeholder="Misal: fade #2 samping, panjang atas">';
+  box.appendChild(f4);
   const footer=document.createElement('div'); footer.className='modal-footer';
   const cancelBtn=document.createElement('button'); cancelBtn.className='btn btn-outline'; cancelBtn.textContent='Batal'; cancelBtn.onclick=closeModal;
   const saveBtn=document.createElement('button'); saveBtn.className='btn btn-teal'; saveBtn.textContent='Daftarkan'; saveBtn.onclick=saveMember;
@@ -1366,8 +1374,9 @@ function saveMember(){
   if(!name){alert('Nama wajib diisi');return;}
   const phone=document.getElementById('m-phone')?.value?.trim()||'';
   const birthday=document.getElementById('m-bday')?.value||null;
+  const notes=document.getElementById('m-notes')?.value?.trim()||'';
   const members=DB.get('members')||[];
-  members.push({id:'m-'+Date.now(),name,phone,birthday,visits:0,joinDate:new Date().toISOString()});
+  members.push({id:'m-'+Date.now(),name,phone,birthday,notes,visits:0,joinDate:new Date().toISOString()});
   DB.set('members',members);
   closeModal();
   renderPanel('member');
@@ -1389,6 +1398,9 @@ function editMember(memberId){
   const f3=document.createElement('div'); f3.className='field';
   f3.innerHTML='<label>Tanggal Lahir</label><input class="finp" type="date" id="em-bday" value="'+(m.birthday||'')+'">';
   box.appendChild(f3);
+  const f4=document.createElement('div'); f4.className='field';
+  f4.innerHTML='<label>Catatan / Preferensi</label><input class="finp" id="em-notes" value="'+(m.notes||'')+'" placeholder="Gaya rambut favorit, catatan khusus">';
+  box.appendChild(f4);
   const bdPrev=document.createElement('div');
   bdPrev.style.cssText='font-size:.72rem;color:var(--teal);margin-top:-.3rem;margin-bottom:.5rem';
   box.appendChild(bdPrev);
@@ -1409,10 +1421,11 @@ function editMember(memberId){
     const name=document.getElementById('em-name')?.value?.trim();
     const phone=document.getElementById('em-phone')?.value?.trim();
     const birthday=document.getElementById('em-bday')?.value||null;
+    const notes=document.getElementById('em-notes')?.value?.trim()||'';
     if(!name){alert('Nama wajib diisi');return;}
     const mems=DB.get('members')||[];
     const mem=mems.find(x=>x.id===memberId);
-    if(mem){mem.name=name;mem.phone=phone;mem.birthday=birthday;}
+    if(mem){mem.name=name;mem.phone=phone;mem.birthday=birthday;mem.notes=notes;}
     DB.set('members',mems);
     closeModal(); renderPanel('member');
   };
